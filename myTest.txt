@@ -1,0 +1,10 @@
+insert value 10
+insert val 11
+insert palpabil 7
+top
+pop
+insert new 12
+top
+pop
+top
+pop
