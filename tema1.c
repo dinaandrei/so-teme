@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "compare.h"
 
 #define bufSize 20001
 
@@ -16,6 +17,9 @@ elem_t * createNode(char * buf){
     int m = 0; 
     char number[15];
     elem_t * node = malloc(sizeof(elem_t));
+    if(node == NULL){
+        return NULL;
+    }
 
     while(index < bufSize){
         if(buf[index] == ' ') {
@@ -35,9 +39,16 @@ elem_t * createNode(char * buf){
     }
 
     node->value = malloc(sizeof(char) * n);
+    if(node->value == NULL){
+        return NULL;
+    }
+    node->neighbour = NULL;
     strncpy ( node->value, (buf + 7), n);
     int num;
     char* buffer = malloc(50);
+    if(buffer==NULL){
+        return NULL;
+    }
     if(sscanf(number,"%d",&num) != 0 && 
         sprintf(buffer, "%d", num) != 0 && 
         strcmp(number, buffer) == 0)
@@ -52,35 +63,40 @@ elem_t * createNode(char * buf){
     return node;
 }
 
-void insert(char * buf, elem_t ** list){
+int insert(char * buf, elem_t ** list){
     elem_t * current = (*list);
     elem_t * new_node = createNode(buf);
 
+    if (new_node == NULL){
+        return 12;
+    }
+
     if(new_node == NULL){
-        return;
+        return 0;
     }
 
     if(*list == NULL){
         *list = new_node;
-        return;
+        return 0;
     }
 
-    if((*list)->priority < new_node->priority){
+    if(compare(new_node->priority, (*list)->priority) >= 0){
         new_node->neighbour = (*list);
-        *list = new_node;
+        (*list) = new_node;
     } else {
-        elem_t * previous = current;
-        current = current->neighbour;
-        while (current != NULL) {
-            if(current->priority < new_node->priority){
-                new_node->neighbour = current->neighbour;
-                previous->neighbour = new_node;
+        current = (*list);
+        while (current->neighbour != NULL) {
+            if(compare(new_node->priority, current->neighbour->priority) < 0) {
+                current = current->neighbour;
+            }
+            else{
                 break;
             }
-            previous = current;
-            current = current->neighbour;
         }
+        new_node->neighbour = current->neighbour;
+        current->neighbour = new_node; 
     }
+    return 1;
 }
 
 void top(elem_t ** list){
@@ -93,37 +109,57 @@ void top(elem_t ** list){
 }
 
 void pop(elem_t ** list){
-    elem_t * next_node = NULL;
-
     if (*list == NULL) {
         return ;
     }
 
-    next_node = (*list)->neighbour;
-    free(*list);
-    *list = next_node;
+    elem_t * next_node = *list;
+
+    *list = (*list)->neighbour;
+    free(next_node->value);
+    free(next_node);
 }
 
 int getInstruction(char * buf){
     char * INSERT = "insert\0";
     char * POP = "pop\0";
     char * TOP = "top\0";
-    
+
+    if((buf[0]=='t' && buf[1]=='o' && buf[2]=='p' && buf[3]!='\0')||
+        (buf[0]=='p' && buf[1]=='o' && buf[2]=='p' && buf[3]!='\0')){
+            return 0;
+        }
+
+    char *tempBuf = malloc((strlen(buf) + 1) * sizeof(char));
+    if(tempBuf == NULL){
+        return 12;
+    }
+
+    strcpy(tempBuf, buf);
     char * var = malloc(10 * sizeof(char));
-    var = strtok (buf," ");
-    // printf("%s\n", var);
-    if(strcmp(var, INSERT) == 0) return 1;
-    if(strcmp(var, POP) == 0) return 2;
-    if(strcmp(var, TOP) == 0) return 3;
+    if(var == NULL){
+        return 12;
+    }
+    var = strtok (tempBuf," ");
+
+    if(var != NULL) {
+        if(strcmp(var, INSERT) == 0) return 1;
+        if(strcmp(var, POP) == 0) return 2;
+        if(strcmp(var, TOP) == 0) return 3;
+        }
+
     return 0;
 }
 
-void doStuff(char * buf, elem_t ** list){
+int doStuff(char * buf, elem_t ** list){
     //get Instruction
+    int ret;
     int index = getInstruction(buf);
+    
     switch(index) {
       case 1 :
-        insert(buf, list);
+        ret = insert(buf, list);
+        if(ret == 12) return 12;
         break;
       case 2 :
         pop(list);
@@ -134,14 +170,19 @@ void doStuff(char * buf, elem_t ** list){
       default :
         break;
    }
+
+   return 1;
     
 }
 
 int main(int argc, char *argv[]){
     char * buf = malloc(bufSize * sizeof(char));
+    if(buf == NULL){
+        return 12;
+    }
     FILE *file;
     int i = 1;
-    elem_t * head;
+    elem_t * head = NULL;
 
     if(argc > 1){
         for (; i < argc; i++){
