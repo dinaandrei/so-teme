@@ -6,25 +6,30 @@
 #define bufSize 20001
 
 typedef struct element {
+
     int priority;
-    char * value;
-    struct element * neighbour;
+
+    char *value;
+
+    struct element *neighbour;
 } elem_t;
 
-elem_t * createNode(char * buf){
+elem_t *createNode(char * buf)
+{
     int index = 7;
     int n = 0; 
     int m = 0; 
     char number[15];
     elem_t * node = malloc(sizeof(elem_t));
-    if(node == NULL){
+    if (node == NULL)
         return NULL;
-    }
 
-    while(index < bufSize){
-        if(buf[index] == ' ') {
+
+    while(index < bufSize) {
+        if(buf[index] == ' ')
             break;
-        } else n++;
+        else 
+            n++;
         index++;
     }
     index++;
@@ -38,7 +43,7 @@ elem_t * createNode(char * buf){
         index++;
     }
 
-    node->value = malloc(sizeof(char) * n);
+    node->value = calloc((n+1), sizeof(char));
     if(node->value == NULL){
         return NULL;
     }
@@ -56,17 +61,20 @@ elem_t * createNode(char * buf){
         node->priority = num;
         free(buffer);
     } else {
+        free(buffer);
         return NULL;
     }
 
-    node->neighbour = NULL;
+
     return node;
 }
 
 int insert(char * buf, elem_t ** list){
+
+
+
     elem_t * current = (*list);
     elem_t * new_node = createNode(buf);
-
     if (new_node == NULL){
         return 12;
     }
@@ -75,26 +83,40 @@ int insert(char * buf, elem_t ** list){
         return 0;
     }
 
+
     if(*list == NULL){
         *list = new_node;
         return 0;
     }
 
+
     if(compare(new_node->priority, (*list)->priority) >= 0){
+
         new_node->neighbour = (*list);
         (*list) = new_node;
     } else {
+
+        //elem_t * previous = current;
+        //current = current->neighbour;
+
         current = (*list);
+
         while (current->neighbour != NULL) {
-            if(compare(new_node->priority, current->neighbour->priority) < 0) {
+
+            if (compare(new_node->priority, current->neighbour->priority) < 0) {
                 current = current->neighbour;
-            }
-            else{
+            } else {
                 break;
             }
+            
+
         }
+
+
         new_node->neighbour = current->neighbour;
-        current->neighbour = new_node; 
+        current->neighbour = new_node;
+
+       
     }
     return 1;
 }
@@ -109,6 +131,8 @@ void top(elem_t ** list){
 }
 
 void pop(elem_t ** list){
+
+
     if (*list == NULL) {
         return ;
     }
@@ -118,12 +142,15 @@ void pop(elem_t ** list){
     *list = (*list)->neighbour;
     free(next_node->value);
     free(next_node);
+
 }
 
 int getInstruction(char * buf){
     char * INSERT = "insert\0";
     char * POP = "pop\0";
     char * TOP = "top\0";
+
+
 
     if((buf[0]=='t' && buf[1]=='o' && buf[2]=='p' && buf[3]!='\0')||
         (buf[0]=='p' && buf[1]=='o' && buf[2]=='p' && buf[3]!='\0')){
@@ -134,19 +161,37 @@ int getInstruction(char * buf){
     if(tempBuf == NULL){
         return 12;
     }
-
     strcpy(tempBuf, buf);
-    char * var = malloc(10 * sizeof(char));
-    if(var == NULL){
-        return 12;
-    }
-    var = strtok (tempBuf," ");
 
+    char *var = strtok (tempBuf," ");
+
+
+    // printf("%s\n", var);
     if(var != NULL) {
-        if(strcmp(var, INSERT) == 0) return 1;
-        if(strcmp(var, POP) == 0) return 2;
-        if(strcmp(var, TOP) == 0) return 3;
+
+        if(strcmp(var, INSERT) == 0) 
+            { 
+                var = strtok(NULL, " ");
+
+                var = strtok(NULL, " ");
+                if(var == NULL){
+                    free(tempBuf);
+                    return 0;
+                }
+                else{
+                    var = strtok(NULL, " ");
+                    if(var!=NULL){
+                        free(tempBuf);
+                        return 0;
+                    }
+                }
+                free(tempBuf); 
+                 return 1;
+            }
+        if(strcmp(var, POP) == 0) {free(tempBuf);  return 2;}
+        if(strcmp(var, TOP) == 0) {free(tempBuf); return 3;}
         }
+    free(tempBuf);
 
     return 0;
 }
@@ -158,8 +203,11 @@ int doStuff(char * buf, elem_t ** list){
     
     switch(index) {
       case 1 :
+
         ret = insert(buf, list);
-        if(ret == 12) return 12;
+        if(ret == 12){
+            return 12;
+        }
         break;
       case 2 :
         pop(list);
@@ -184,12 +232,19 @@ int main(int argc, char *argv[]){
     int i = 1;
     elem_t * head = NULL;
 
+
+
     if(argc > 1){
         for (; i < argc; i++){
+
             file = fopen(argv[i],"r");
+
             if(file != NULL){
+
+
                 while (fgets(buf, bufSize, file) != NULL){
                     buf[strlen(buf) - 1] = '\0';
+
                     doStuff(buf, &head);
                 }
                 fclose(file);
@@ -201,6 +256,15 @@ int main(int argc, char *argv[]){
             doStuff(buf, &head);
         }
     }
+    free(buf);
+    elem_t * temp;
+    while(head != NULL){
+        temp = head;
+        head = head->neighbour;
+        free(temp->value);
+        free(temp);
+    }
+
 
     return 0;
 }
