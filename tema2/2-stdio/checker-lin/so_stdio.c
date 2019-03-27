@@ -27,14 +27,14 @@ mode_t get_file_opening_flags(const char *mode)
     if (strcmp(mode, "a+"))
         return O_APPEND | O_RDONLY | O_CREAT;
 
-    return (mode_t)-1;
+    return 0x0;
 }
 
 SO_FILE *so_fopen(const char *pathname, const char *mode)
 {
     printf("asgdsgsdgsdrgsdrg");
     mode_t i = get_file_opening_flags(mode);
-    if(i == -1)
+    if(i == 0x0)
         return NULL;
     int fd = open(pathname, i, 0644);
     if (fd < 1)
@@ -42,6 +42,15 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
 
     SO_FILE *s_file = malloc(sizeof(SO_FILE));
     s_file->fd = fd;
+
+    return s_file;
+}
+
+int so_fileno(SO_FILE *stream){
+    if(stream == NULL)
+        return SO_EOF;
+    
+    return stream->fd;
 }
 
 int so_fclose(SO_FILE *stream)
@@ -119,27 +128,6 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 {
 
-    // int num = 0;
-    // void *buf = malloc(sizeof(void) * size * nmemb);
-    // int c, i;
-
-    // do
-    // {
-
-    //     for (i = 0; i < size; i++)
-    //     {
-    //         c = so_fputc(stream);
-    //         if (c == SO_EOF)
-    //         {
-    //             return 0;
-    //         }
-    //         strcat(buf, (char)c);
-    //     }
-    //     num++;
-    // } while (num < nmemb);
-
-    // strcpy(ptr, buf);
-    // return (size_t)num;
 }
 
 int so_fflush(SO_FILE *stream)
