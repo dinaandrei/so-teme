@@ -80,15 +80,15 @@ int so_fgetc(SO_FILE *stream)
 {
 
     if (stream == NULL || stream->fd < 0)
-        return -1;
+        return SO_EOF;
 
-    if(stream->is_at_end && stream->read_pos == stream->buff_len)
+    if(stream->is_at_end )
         return SO_EOF;
 
     if(stream->read_pos == stream->buff_len){
         int status = read(stream->fd, stream->buffer, B_SIZE);
         if(status < 0)
-            return -1;
+            return SO_EOF;
         if(status == 0)
             stream->is_at_end = 1;
 
