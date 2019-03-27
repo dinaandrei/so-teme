@@ -119,27 +119,27 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 {
 
-    int num = 0;
-    void *buf = malloc(sizeof(void) * size * nmemb);
-    int c, i;
+    // int num = 0;
+    // void *buf = malloc(sizeof(void) * size * nmemb);
+    // int c, i;
 
-    do
-    {
+    // do
+    // {
 
-        for (i = 0; i < size; i++)
-        {
-            c = so_fputc(stream);
-            if (c == SO_EOF)
-            {
-                return 0;
-            }
-            strcat(buf, (char)c);
-        }
-        num++;
-    } while (num < nmemb);
+    //     for (i = 0; i < size; i++)
+    //     {
+    //         c = so_fputc(stream);
+    //         if (c == SO_EOF)
+    //         {
+    //             return 0;
+    //         }
+    //         strcat(buf, (char)c);
+    //     }
+    //     num++;
+    // } while (num < nmemb);
 
-    strcpy(ptr, buf);
-    return (size_t)num;
+    // strcpy(ptr, buf);
+    // return (size_t)num;
 }
 
 int so_fflush(SO_FILE *stream)
