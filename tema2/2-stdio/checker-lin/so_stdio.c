@@ -4,37 +4,38 @@
 
 #include "so_stdio.h"
 
+#define B_SIZE 4096
+
 mode_t get_file_opening_flags(const char *mode);
 
 mode_t get_file_opening_flags(const char *mode)
 {
 
-    if (strcmp(mode, "r"))
+    if (strncmp(mode, "r", 1) == 0)
         return O_RDONLY;
 
-    if (strcmp(mode, "r+"))
+    if (strncmp(mode, "r+", 2) == 0)
         return O_RDWR;
 
-    if (strcmp(mode, "w"))
+    if (strncmp(mode, "w", 1) == 0)
         return O_WRONLY | O_CREAT | O_TRUNC;
 
-    if (strcmp(mode, "w+"))
+    if (strncmp(mode, "w+", 2) == 0)
         return O_RDWR | O_CREAT | O_TRUNC;
 
-    if (strcmp(mode, "a"))
+    if (strncmp(mode, "a", 1) == 0)
         return O_APPEND | O_CREAT;
 
-    if (strcmp(mode, "a+"))
+    if (strncmp(mode, "a+", 2) == 0)
         return O_APPEND | O_RDONLY | O_CREAT;
 
-    return 0x0;
+    return 0x6969;
 }
 
 SO_FILE *so_fopen(const char *pathname, const char *mode)
 {
-    printf("asgdsgsdgsdrgsdrg");
     mode_t i = get_file_opening_flags(mode);
-    if(i == 0x0)
+    if(i == 0x6969)
         return NULL;
     int fd = open(pathname, i, 0644);
     if (fd < 1)
@@ -42,6 +43,11 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
 
     SO_FILE *s_file = malloc(sizeof(SO_FILE));
     s_file->fd = fd;
+    s_file->buffer = malloc(sizeof(char) * B_SIZE);
+    s_file->read_pos = 0;
+    s_file->write_pos = 0;
+    s_file->buff_len = 0;
+    s_file->is_at_end = 0;
 
     return s_file;
 }
@@ -61,7 +67,9 @@ int so_fclose(SO_FILE *stream)
     }
 
     int status = close(stream->fd);
+    free(stream->buffer);
     free(stream);
+
     if (status == 0)
         return status;
 
@@ -74,15 +82,20 @@ int so_fgetc(SO_FILE *stream)
     if (stream == NULL || stream->fd < 0)
         return -1;
 
-    char c;
-    int status = read(stream->fd, &c, 1);
-    if(status < 0)
-        return -1;
-
-    if(status == 0) 
+    if(stream->is_at_end && stream->read_pos == stream->buff_len)
         return SO_EOF;
 
-    return (int)c;
+    if(stream->read_pos == stream->buff_len){
+        int status = read(stream->fd, stream->buffer, B_SIZE);
+        if(status < 0)
+            return -1;
+        if(status == 0)
+            stream->is_at_end = 1;
+
+        stream->buff_len = sizeof(stream->buffer);
+    }
+
+    return (int)stream->buffer[stream->read_pos++];
 
 }
 
