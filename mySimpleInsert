@@ -1,8 +1,0 @@
-insert abla1 100
-insert otherValue 15
-insert someOtherValue 20
-pop
-pop
-pop
-insert someOtherValue 30
-top

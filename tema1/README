@@ -1,0 +1,34 @@
+Dina Andrei 335CB
+
+   Pentru implementarea PRIORITY QUEUE-ului am folosit o structura de date asemanatoare 
+structurii de date LINKED_LIST adaugand inca un camp de priority folosit indeosebi la inserare.
+
+In main: - am despartit cele doua logici de citire si anume din fisiere sau STDIN
+          - am alocat bufferul in care se citea si am avut grija sa returnez codul de eroare unde era necesar
+          - am eliberat coada
+
+executeInstructions: - se foloseste de functia getInstructions si in functie de indexul rezultat apeleaza
+                        una din cele trei functii : * priorityQueue_insert
+                                                    * priorityQueue_pop
+                                                    * priorityQueue_top
+                        altfel nu se intampla nimic
+
+getInstructions: - pentru inceput verific veridicitatea unei instructiuni. Doresc sa vad daca este valida.
+                   In cazul instructiunii top si pop este usor de verificat. Pentru Insert trebuie verificat 
+                   daca are exact doua argumente, urmand apoi ca in alta functie sa verific daca datele respective
+                   sunt sau nu valide.
+                   Functia, in caz de esec va intoarce 0, in caz de match va intoarce index-ul respectiv comenzii
+
+priorityQueue_insert: - se foloseste de functia createNode pentru a crea nodul cu parametrii din Insert. Daca se reuseste 
+                        realizarea nodului se continua cu logica de inserare folosind functia de compare din libraria 
+                        compare.h
+                    
+createNode: - aici creez noul element si in caz de esec returnez NULL. Verific EXACT cei doi parametrii (Despre care stiu sigur 
+              ca exista din cauza validarii functiei de insert) si anume daca al doilea parametru este numar.
+
+priorityQueue_pop: daca lista mai are elemente, il elimina pe primul si elibereaza memoria
+
+priorityQueue_top: daca se poate afisa, afisaza la STDIN, altfel afisaza un new line
+
+
+------Am folosit resursele din laboratorul 1 de SO si mai ales cunostiintele de la SD-------
