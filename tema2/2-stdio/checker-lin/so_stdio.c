@@ -4,42 +4,36 @@
 
 #include "so_stdio.h"
 
-int get_file_opening_flags(const char *mode);
+mode_t get_file_opening_flags(const char *mode);
 
-int get_file_opening_flags(const char *mode)
+mode_t get_file_opening_flags(const char *mode)
 {
 
     if (strcmp(mode, "r"))
-    {
         return O_RDONLY;
-    }
+
     if (strcmp(mode, "r+"))
-    {
         return O_RDWR;
-    }
+
     if (strcmp(mode, "w"))
-    {
         return O_WRONLY | O_CREAT | O_TRUNC;
-    }
+
     if (strcmp(mode, "w+"))
-    {
         return O_RDWR | O_CREAT | O_TRUNC;
-    }
+
     if (strcmp(mode, "a"))
-    {
         return O_APPEND | O_CREAT;
-    }
+
     if (strcmp(mode, "a+"))
-    {
         return O_APPEND | O_RDONLY | O_CREAT;
-    }
-    return -1;
+
+    return (mode_t)-1;
 }
 
 SO_FILE *so_fopen(const char *pathname, const char *mode)
 {
-
-    int i = get_file_opening_flags(mode);
+    printf("asgdsgsdgsdrgsdrg");
+    mode_t i = get_file_opening_flags(mode);
     if(i == -1)
         return NULL;
     int fd = open(pathname, i, 0644);
