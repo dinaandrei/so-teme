@@ -68,7 +68,9 @@ int so_fclose(SO_FILE *stream)
         return SO_EOF;
     }
 
-    so_fflush(stream)
+    if(so_fflush(stream) < 0 ){
+        return SO_EOF;
+    }
     int status = close(stream->fd);
     free(stream->buffer_read);
     free(stream->buffer_write);
