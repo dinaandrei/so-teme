@@ -38,6 +38,7 @@ struct _so_file {
     int buff_write_len;
     int read_pos;
     int write_pos;
+    int is_at_end_read;
 };
 
 typedef struct _so_file SO_FILE;

@@ -49,6 +49,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
     s_file->write_pos = 0;
     s_file->buff_read_len = 0;
     s_file->buff_write_len = 0;
+    s_file->is_at_end_read = 0;
 
     return s_file;
 }
@@ -80,11 +81,10 @@ int so_fclose(SO_FILE *stream)
 
 int so_fgetc(SO_FILE *stream)
 {
-
     if (stream == NULL || stream->fd < 0)
         return SO_EOF;
 
-    if(stream->buffer_read[stream->read_pos] == '\0')
+    if(stream->is_at_end_read == 1 && stream->buffer_read[stream->read_pos] == '\0')
         return SO_EOF;
 
     if(stream->read_pos == stream->buff_read_len == 0){
@@ -96,10 +96,10 @@ int so_fgetc(SO_FILE *stream)
 
         if(status == 0)
             stream->buff_read_len = 4096;
+            stream->is_at_end_read = 1;
     }
 
     return (int)stream->buffer_read[stream->read_pos++];
-
 }
 
 int write_free_buffer(SO_FILE * stream){
@@ -119,7 +119,7 @@ int so_fflush(SO_FILE *stream)
     if (stream == NULL || stream->fd < 0)
         return SO_EOF;
 
-    int status = free_buffer(stream);
+    int status = write_free_buffer(stream);
     
 }
 
