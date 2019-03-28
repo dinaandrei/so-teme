@@ -32,11 +32,12 @@
 
 struct _so_file {
     int fd;
-    char* buffer;
-    int buff_len;
+    char* buffer_read;
+    char* buffer_write;
+    int buff_read_len;
+    int buff_write_len;
     int read_pos;
     int write_pos;
-    int is_at_end;
 };
 
 typedef struct _so_file SO_FILE;

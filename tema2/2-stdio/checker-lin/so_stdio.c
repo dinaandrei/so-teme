@@ -43,11 +43,12 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
 
     SO_FILE *s_file = malloc(sizeof(SO_FILE));
     s_file->fd = fd;
-    s_file->buffer = malloc(sizeof(char) * B_SIZE);
+    s_file->buffer_read = malloc(sizeof(char) * B_SIZE);
+    s_file->buffer_write = malloc(sizeof(char) * B_SIZE);
     s_file->read_pos = 0;
     s_file->write_pos = 0;
-    s_file->buff_len = 0;
-    s_file->is_at_end = 0;
+    s_file->buff_read_len = 0;
+    s_file->buff_write_len = 0;
 
     return s_file;
 }
@@ -67,7 +68,8 @@ int so_fclose(SO_FILE *stream)
     }
 
     int status = close(stream->fd);
-    free(stream->buffer);
+    free(stream->buffer_read);
+    free(stream->buffer_write);
     free(stream);
 
     if (status == 0)
@@ -82,25 +84,59 @@ int so_fgetc(SO_FILE *stream)
     if (stream == NULL || stream->fd < 0)
         return SO_EOF;
 
-    if(stream->is_at_end )
+    if(stream->buffer_read[stream->read_pos] == '\0')
         return SO_EOF;
 
-    if(stream->read_pos == stream->buff_len){
-        int status = read(stream->fd, stream->buffer, B_SIZE);
+    if(stream->read_pos == stream->buff_read_len == 0){
+        int status = read(stream->fd, stream->buffer_read, B_SIZE);
         if(status < 0)
             return SO_EOF;
-        if(status == 0)
-            stream->is_at_end = 1;
 
-        stream->buff_len = sizeof(stream->buffer);
+        stream->buff_read_len = status;
+
+        if(status == 0)
+            stream->buff_read_len = 4096;
     }
 
-    return (int)stream->buffer[stream->read_pos++];
+    return (int)stream->buffer_read[stream->read_pos++];
 
+}
+
+int write_free_buffer(SO_FILE * stream){
+    int status = write(stream->fd, (void*) stream->buffer_write, stream->buff_write_len);
+    if(status < 0) 
+        return SO_EOF;
+
+    strcpy(stream->buffer_write, "");
+    stream->buff_write_len = 0;
+    stream->write_pos = 0;
+
+    return status;
+}
+
+int so_fflush(SO_FILE *stream)
+{
+    if (stream == NULL || stream->fd < 0)
+        return SO_EOF;
+
+    int status = free_buffer(stream);
+    
 }
 
 int so_fputc(int c, SO_FILE *stream)
 {
+    if (stream == NULL || stream->fd < 0)
+        return SO_EOF;
+
+    if(stream->write_pos == B_SIZE){
+       int status = write_free_buffer(stream);
+       if(status < 0) 
+        return SO_EOF;
+    }
+    stream->buffer_write[stream->write_pos++];
+    stream->buff_write_len ++;
+    
+    return c;
 
 }
 
@@ -118,7 +154,7 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
     int num = 0;
     void *buf = malloc(sizeof(void) * size * nmemb);
     int c, i;
-
+    int initial_pos = stream->read_pos;
     do
     {
 
@@ -141,10 +177,6 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 {
 
-}
-
-int so_fflush(SO_FILE *stream)
-{
 }
 
 int so_feof(SO_FILE *stream)
