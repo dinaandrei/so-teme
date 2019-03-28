@@ -68,6 +68,7 @@ int so_fclose(SO_FILE *stream)
         return SO_EOF;
     }
 
+    so_fflush(stream)
     int status = close(stream->fd);
     free(stream->buffer_read);
     free(stream->buffer_write);
@@ -87,16 +88,18 @@ int so_fgetc(SO_FILE *stream)
     if(stream->is_at_end_read == 1 && stream->buffer_read[stream->read_pos] == '\0')
         return SO_EOF;
 
-    if(stream->read_pos == stream->buff_read_len == 0){
+    if(stream->read_pos == stream->buff_read_len){
         int status = read(stream->fd, stream->buffer_read, B_SIZE);
         if(status < 0)
             return SO_EOF;
 
         stream->buff_read_len = status;
+        stream->read_pos = 0;
 
-        if(status == 0)
+        if(status == 0){
             stream->buff_read_len = 4096;
             stream->is_at_end_read = 1;
+        }
     }
 
     return (int)stream->buffer_read[stream->read_pos++];
@@ -120,6 +123,7 @@ int so_fflush(SO_FILE *stream)
         return SO_EOF;
 
     int status = write_free_buffer(stream);
+    return status;
     
 }
 
