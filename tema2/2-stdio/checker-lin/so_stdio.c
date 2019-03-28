@@ -68,7 +68,7 @@ int so_fclose(SO_FILE *stream)
         return SO_EOF;
     }
 
-    if(so_fflush(stream) < 0 ){
+    if(stream->write_pos > 0 && so_fflush(stream) < 0 ){
         return SO_EOF;
     }
     int status = close(stream->fd);
@@ -90,6 +90,7 @@ int so_fgetc(SO_FILE *stream)
     if(stream->is_at_end_read == 1 && stream->buffer_read[stream->read_pos] == '\0')
         return SO_EOF;
 
+
     if(stream->read_pos == stream->buff_read_len){
         int status = read(stream->fd, stream->buffer_read, B_SIZE);
         if(status < 0)
@@ -103,12 +104,11 @@ int so_fgetc(SO_FILE *stream)
             stream->is_at_end_read = 1;
         }
     }
-
     return (int)stream->buffer_read[stream->read_pos++];
 }
 
-int write_free_buffer(SO_FILE * stream){
-    int status = write(stream->fd, (void*) stream->buffer_write, stream->buff_write_len);
+int write_free_buffer(SO_FILE * stream, void* buff, int len){
+    int status = write(stream->fd, buff , len);
     if(status < 0) 
         return SO_EOF;
 
@@ -124,7 +124,11 @@ int so_fflush(SO_FILE *stream)
     if (stream == NULL || stream->fd < 0)
         return SO_EOF;
 
-    int status = write_free_buffer(stream);
+    char* buffer = malloc(B_SIZE + 10);
+    strncpy(buffer, stream->buffer_write, B_SIZE);
+    buffer[stream->write_pos] = '\0';
+    printf("buffer: %s \n %s \n", buffer, stream->buffer_write);
+    int status = write_free_buffer(stream, buffer, stream->buff_write_len + 1);
     return status;
     
 }
@@ -135,14 +139,14 @@ int so_fputc(int c, SO_FILE *stream)
         return SO_EOF;
 
     if(stream->write_pos == B_SIZE){
-       int status = write_free_buffer(stream);
-       if(status < 0) 
-        return SO_EOF;
+       int status = write_free_buffer(stream, (void*)stream->buffer_write, stream->write_pos);
+       if(status < 0)
+           return SO_EOF;
     }
-    stream->buffer_write[stream->write_pos++];
+    stream->buffer_write[stream->write_pos++] = (char)c;
     stream->buff_write_len ++;
     
-    return c;
+    return stream->buffer_write[stream->write_pos-1];
 
 }
 
