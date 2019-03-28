@@ -68,9 +68,10 @@ int so_fclose(SO_FILE *stream)
         return SO_EOF;
     }
 
-    if(so_fflush(stream) < 0 ){
+    if(stream->write_pos > 0 && so_fflush(stream) < 0 ){
         return SO_EOF;
     }
+
     int status = close(stream->fd);
     free(stream->buffer_read);
     free(stream->buffer_write);
@@ -135,11 +136,11 @@ int so_fputc(int c, SO_FILE *stream)
         return SO_EOF;
 
     if(stream->write_pos == B_SIZE){
-       int status = write_free_buffer(stream);
-       if(status < 0) 
-        return SO_EOF;
+        int status = write_free_buffer(stream);
+        if(status < 0) 
+            return SO_EOF;
     }
-    stream->buffer_write[stream->write_pos++];
+    stream->buffer_write[stream->write_pos++] = c;
     stream->buff_write_len ++;
     
     return c;
@@ -158,12 +159,11 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 {
 
     int num = 0;
-    void *buf = malloc(sizeof(void) * size * nmemb);
+    void *buf = malloc(size * nmemb);
     int c, i;
     int initial_pos = stream->read_pos;
     do
     {
-
         for (i = 0; i < size; i++)
         {
             c = so_fgetc(stream);
