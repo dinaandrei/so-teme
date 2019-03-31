@@ -40,6 +40,7 @@ struct _so_file {
     int write_pos;
     int is_at_end_read;
     int num_of_reads;
+    int eof_pos;
 };
 
 typedef struct _so_file SO_FILE;

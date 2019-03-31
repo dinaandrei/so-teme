@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "so_stdio.h"
 
@@ -51,6 +52,8 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
     s_file->buff_write_len = 0;
     s_file->is_at_end_read = 0;
     s_file->num_of_reads = 0;
+    s_file->eof_pos = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
 
     return s_file;
 }
@@ -177,7 +180,7 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
     while (total > 0)
     {
 	printf("pos: %d\n", stream->read_pos);    
-        if (so_fgetc(stream) == SO_EOF)
+        if (so_fgetc(stream) == SO_EOF && stream->read_pos == stream->eof_pos)
             return 0;
 
         stream->read_pos--;
