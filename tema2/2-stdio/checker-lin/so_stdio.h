@@ -39,6 +39,7 @@ struct _so_file {
     int read_pos;
     int write_pos;
     int is_at_end_read;
+    int num_of_reads;
 };
 
 typedef struct _so_file SO_FILE;
