@@ -131,7 +131,6 @@ int so_fflush(SO_FILE *stream)
     if (stream == NULL || stream->fd < 0)
         return SO_EOF;
 
-    memcpy(buffer, stream->buffer_write, stream->buff_write_len);
     int status = write_free_buffer(stream, stream->buffer_write, stream->buff_write_len);
     return status;
 }
@@ -177,7 +176,8 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
             return 0;
 
         stream->read_pos--;
-        int num_elems = stream->buff_read_len - stream->read_pos < total ? stream->buff_read_len - stream->read_pos : total;
+        int num_elems = stream->buff_read_len - stream->read_pos < total ? 
+            stream->buff_read_len - stream->read_pos : total;
 
         memcpy(ptr + pos, stream->buffer_read + stream->read_pos, num_elems);
         stream->read_pos += num_elems;
@@ -190,6 +190,27 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 
 size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 {
+    int total = size * nmemb;
+    size_t num = 0;
+    int pos = 0, i;
+
+    while(total > 0)
+    {
+        
+        int num_elems = stream->buff_write_len - stream->write_pos < total ? 
+            stream->buff_write_len - stream->write_pos : total;
+
+        for(i = 0 ; i < total ; i++)
+        {
+            if(fputc((int)ptr[i], stream) == SO_EOF)
+                return 0;
+        }
+
+        num += num_elems / size;
+        
+    }
+
+    return num;
 }
 
 int so_feof(SO_FILE *stream)
