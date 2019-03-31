@@ -110,7 +110,9 @@ int so_fgetc(SO_FILE *stream)
             stream->is_at_end_read = 1;
         }
     }
-    return (int)stream->buffer_read[stream->read_pos++];
+   
+    int result = (int)stream->buffer_read[stream->read_pos++];
+    return result;
 }
 
 int write_free_buffer(SO_FILE *stream, void *buff, int len)
@@ -122,7 +124,6 @@ int write_free_buffer(SO_FILE *stream, void *buff, int len)
     strcpy(stream->buffer_write, "");
     stream->buff_write_len = 0;
     stream->write_pos = 0;
-
     return status;
 }
 
@@ -132,24 +133,27 @@ int so_fflush(SO_FILE *stream)
         return SO_EOF;
 
     int status = write_free_buffer(stream, stream->buffer_write, stream->buff_write_len);
-    return status;
+    int result = status < 0 ? SO_EOF : 0 ;
+    return result;
 }
 
 int so_fputc(int c, SO_FILE *stream)
 {
-    if (stream == NULL || stream->fd < 0)
-        return SO_EOF;
+    if (stream == NULL || stream->fd < 0){
+	return SO_EOF;
+    }
 
     if (stream->write_pos == B_SIZE)
     {
         int status = write_free_buffer(stream, stream->buffer_write, stream->buff_write_len);
-        if (status < 0)
-            return SO_EOF;
+        if (status < 0){
+	   return SO_EOF;
+	}
     }
     stream->buffer_write[stream->write_pos++] = (char)c;
     stream->buff_write_len++;
 
-    return stream->buffer_write[stream->write_pos - 1];
+    return c;
 }
 
 int so_fseek(SO_FILE *stream, long offset, int whence)
@@ -172,6 +176,7 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 
     while (total > 0)
     {
+	printf("pos: %d\n", stream->read_pos);    
         if (so_fgetc(stream) == SO_EOF)
             return 0;
 
@@ -190,24 +195,29 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 
 size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 {
-    int total = size * nmemb;
+    size_t total = size * nmemb;
     size_t num = 0;
-    int pos = 0, i;
-
+    int i, pos = 0;
+    char * buf = (char *)ptr;
+    
     while(total > 0)
     {
-        
-        int num_elems = stream->buff_write_len - stream->write_pos < total ? 
-            stream->buff_write_len - stream->write_pos : total;
+	int c = so_fputc('!', stream);
+	if(c == SO_EOF)
+		return 0;
 
-        for(i = 0 ; i < total ; i++)
+	stream->buff_write_len--;
+	stream->write_pos--;
+
+        int num_elems = B_SIZE < total ? B_SIZE : total;
+        for(i = 0 ; i < num_elems ; i++)
         {
-            if(fputc((int)ptr[i], stream) == SO_EOF)
-                return 0;
+           so_fputc((int)buf[i + pos], stream); 
         }
 
         num += num_elems / size;
-        
+        total -= num_elems; 
+	pos += num_elems;
     }
 
     return num;
