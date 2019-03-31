@@ -140,7 +140,7 @@ int so_fputc(int c, SO_FILE *stream)
         return SO_EOF;
 
     if(stream->write_pos == B_SIZE){
-        int status = write_free_buffer(stream);
+        int status = write_free_buffer(stream, stream->buffer_write, stream->buff_write_len);
         if(status < 0) 
             return SO_EOF;
     }
@@ -167,21 +167,22 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 {
     int total = size * nmemb;
     size_t num = 0;
+    int pos = 0;
 
     while (total > 0){
-        if(fgetc(stream))
+        if(so_fgetc(stream) == SO_EOF)
             return 0;
 
         stream->read_pos--;
         int num_elems = stream->buff_read_len - stream->read_pos < total ? 
             stream->buff_read_len - stream->read_pos : total;
 
-        memcpy(ptr, stream->buffer_read + stream->read_pos, num_elems);
-        stream->read_pos = stream->buff_read_len;
+        memcpy(ptr + pos, stream->buffer_read + stream->read_pos, num_elems);
+        stream->read_pos += num_elems;
         total -= num_elems;
         num += num_elems / size;
+	pos += num_elems;
     }
-
     return num;
 }
 
