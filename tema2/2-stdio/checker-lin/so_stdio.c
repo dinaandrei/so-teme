@@ -91,6 +91,7 @@ int so_fgetc(SO_FILE *stream)
     if(stream->is_at_end_read == 1 && stream->buffer_read[stream->read_pos] == '\0')
         return SO_EOF;
 
+
     if(stream->read_pos == stream->buff_read_len){
         int status = read(stream->fd, stream->buffer_read, B_SIZE);
         if(status < 0)
@@ -104,12 +105,11 @@ int so_fgetc(SO_FILE *stream)
             stream->is_at_end_read = 1;
         }
     }
-
     return (int)stream->buffer_read[stream->read_pos++];
 }
 
-int write_free_buffer(SO_FILE * stream){
-    int status = write(stream->fd, (void*) stream->buffer_write, stream->buff_write_len);
+int write_free_buffer(SO_FILE * stream, void* buff, int len){
+    int status = write(stream->fd, buff , len);
     if(status < 0) 
         return SO_EOF;
 
@@ -125,7 +125,11 @@ int so_fflush(SO_FILE *stream)
     if (stream == NULL || stream->fd < 0)
         return SO_EOF;
 
-    int status = write_free_buffer(stream);
+    char* buffer = malloc(B_SIZE + 10);
+    strncpy(buffer, stream->buffer_write, B_SIZE);
+    buffer[stream->write_pos] = '\0';
+    printf("buffer: %s \n %s \n", buffer, stream->buffer_write);
+    int status = write_free_buffer(stream, buffer, stream->buff_write_len + 1);
     return status;
     
 }
@@ -143,7 +147,7 @@ int so_fputc(int c, SO_FILE *stream)
     stream->buffer_write[stream->write_pos++] = c;
     stream->buff_write_len ++;
     
-    return c;
+    return stream->buffer_write[stream->write_pos-1];
 
 }
 
@@ -153,31 +157,32 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
 
 long so_ftell(SO_FILE *stream)
 {
+    if (stream == NULL || stream->fd < 0)
+        return SO_EOF;
+    
+    return stream->read_pos;
 }
 
 size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 {
+    int total = size * nmemb;
+    size_t num = 0;
 
-    int num = 0;
-    void *buf = malloc(size * nmemb);
-    int c, i;
-    int initial_pos = stream->read_pos;
-    do
-    {
-        for (i = 0; i < size; i++)
-        {
-            c = so_fgetc(stream);
-            if (c == SO_EOF)
-            {
-                return 0;
-            }
-            strcat(buf, (char)c);
-        }
-        num++;
-    } while (num < nmemb);
+    while (total > 0){
+        if(fgetc(stream))
+            return 0;
 
-    strcpy(ptr, buf);
-    return (size_t)num;
+        stream->read_pos--;
+        int num_elems = stream->buff_read_len - stream->read_pos < total ? 
+            stream->buff_read_len - stream->read_pos : total;
+
+        memcpy(ptr, stream->buffer_read + stream->read_pos, num_elems);
+        stream->read_pos = stream->buff_read_len;
+        total -= num_elems;
+        num += num_elems / size;
+    }
+
+    return num;
 }
 
 size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
