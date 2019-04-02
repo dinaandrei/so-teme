@@ -41,6 +41,7 @@ struct _so_file {
     int is_at_end_read;
     int num_of_reads;
     int eof_pos;
+    int error;
 };
 
 typedef struct _so_file SO_FILE;
