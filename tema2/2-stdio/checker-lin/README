@@ -1,0 +1,50 @@
+Dina Andrei 335CB
+
+Am construit structura : 
+struct _so_file {
+    int fd - file descriptor-ul
+    char *buffer_read - bufferul unde se vor pune datele citite
+    char* buffer_write - bufferul unde se vor pune datele scirse
+    int buff_read_len - lungimea bufferului citit
+    int buff_write_len - lungimea bufferului scris
+    int read_pos - pozitia curenta din bufferul de citire
+    int write_pos - pozitia curenta din bufferul de scriere
+    int is_at_end_read - daca am ajuns la final cu citirea
+    int num_of_reads - de cate ori am citit din buffer MAXIM 4096 
+    int eof_pos - pozitia de final a bufferului
+    int error - eroare pe parcurs
+};
+
+so_fopen -> dupa obtinerea flag-urilor de permisiuni, incerc deschiderea fisierului si 
+            alocarea structurii si implicit a bufferelor;
+
+so_fileno -> intoarce file descriptor ul daca fisierul este valid si file-descriptor ul e mai mare decat 0
+
+so_fclose -> apeleaza daca poate fflush pentru scrierea elementelor din bufferul de scriere in fisier, apoi
+        inchide file descriptor ul si elibereaza memoria
+
+so_fgetc -> daca pozitia de citire(initial 0) este egala buffer write length, atunci mai trebuiesc citite inca 
+        maxim 4096 caractere si refacute valorile pentru pozitie si citire. Este intors caracterul de pe pozitia 
+        curenta si apoi este incrementata pozitia. Daca am ajuns la final de fisier, se va intoarce valoarea -1;
+
+write_free_buffer -> functie ajutatoare pentru scriere. Scrie bufferul in fisier si reface bufferul la "" cu 
+        tot cu pozitie si length.
+
+so_fflush -> apeleaza functia write_free_buffer si intoarce 0 pt succes si SO_EOF pt esec
+
+so_fputc -> pune caracter in buffer si incrementeaza pozitia curenta. Daca pozitia a ajuns la 4096 se apeleaza
+        write_free_buffer.
+
+so_fseek -> 
+
+so_ftell -> intoarce pozitia curenta pentru citire a bufferului inmultita cu numarul de citiri;
+
+so_fread -> daca se mai poate citi un caracter atunci verificam cate elemente dorim sa citim. Daca numarul este mai
+        decat size-ul bufferului numarul de elemente scrise este size-ul bufferului altfel numarul introdus.
+
+so_fwrite -> putem scrie in buffer maxim 4096 de elemente. Cat timp nu au fost scrise toate datele in fisier, vom executa
+        un while care scrie cate iun calup de maxim 4096 elemente.
+
+so_feof -> intoarce daca suntem la final de fisier
+
+so_ferror -> intoarce daca am avut o eropare pe parcurs.

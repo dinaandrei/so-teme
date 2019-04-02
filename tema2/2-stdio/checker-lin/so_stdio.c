@@ -9,6 +9,11 @@
 
 mode_t get_file_opening_flags(const char *mode);
 
+/*
+    in functie de modul dat ca parametru returneaza
+    al doilea paramatru al functiei open cu flag-urile 
+    respective
+*/
 mode_t get_file_opening_flags(const char *mode)
 {
 
@@ -105,7 +110,6 @@ int so_fgetc(SO_FILE *stream)
     }
     if (stream->is_at_end_read == 1 && stream->buffer_read[stream->read_pos] == '\0')
     {
-        stream->error = 1;
         return SO_EOF;
     }
 
@@ -186,11 +190,23 @@ int so_fputc(int c, SO_FILE *stream)
 
 int so_fseek(SO_FILE *stream, long offset, int whence)
 {
+    int i = lseek(stream->fd, offset, whence);
+    if(i < 0){
+        stream->error = 1;
+        return SO_EOF;
+    }
+
+    stream->read_pos = 0;
+    strcpy(stream->buffer_read, "");
+    stream->num_of_reads = (i / B_SIZE) * B_SIZE == i ? (i / B_SIZE) : (i / B_SIZE) + 1;
+
+    return i;
 }
 
 long so_ftell(SO_FILE *stream)
 {
-    if (stream == NULL || stream->fd < 0){
+    if (stream == NULL || stream->fd < 0)
+    {
         stream->error = 1;
         return SO_EOF;
     }
@@ -207,8 +223,9 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
     while (total > 0)
     {
         printf("pos: %d\n", stream->read_pos);
-        if (so_fgetc(stream) == SO_EOF && stream->read_pos == stream->eof_pos){
-             stream->error = 1;
+        if (so_fgetc(stream) == SO_EOF && stream->read_pos == stream->eof_pos)
+        {
+            stream->error = 1;
             return 0;
         }
 
@@ -234,7 +251,8 @@ size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
     while (total > 0)
     {
         int c = so_fputc('!', stream);
-        if (c == SO_EOF){
+        if (c == SO_EOF)
+        {
             stream->error = 1;
             return 0;
         }
