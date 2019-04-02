@@ -1,39 +1,33 @@
-==2691== Memcheck, a memory error detector
-==2691== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==2691== Using Valgrind-3.15.0.GIT and LibVEX; rerun with -h for copyright info
-==2691== Command: _test/bin/test_fread_huge_chunked ./_test/work/test_8
-==2691== Parent PID: 2686
-==2691== 
-==2691== 
-==2691== HEAP SUMMARY:
-==2691==     in use at exit: 208,240 bytes in 4 blocks
-==2691==   total heap usage: 10 allocs, 6 frees, 218,616 bytes allocated
-==2691== 
-==2691== 48 bytes in 1 blocks are still reachable in loss record 1 of 4
-==2691==    at 0x4C2FDFB: malloc (vg_replace_malloc.c:309)
-==2691==    by 0x4E3DD0E: so_fopen (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
-==2691==    by 0x10910E: main (test_fread_huge_chunked.c:65)
-==2691== 
-==2691== 4,096 bytes in 1 blocks are still reachable in loss record 2 of 4
-==2691==    at 0x4C2FDFB: malloc (vg_replace_malloc.c:309)
-==2691==    by 0x4E3DD25: so_fopen (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
-==2691==    by 0x10910E: main (test_fread_huge_chunked.c:65)
-==2691== 
-==2691== 4,096 bytes in 1 blocks are still reachable in loss record 3 of 4
-==2691==    at 0x4C2FDFB: malloc (vg_replace_malloc.c:309)
-==2691==    by 0x4E3DD3A: so_fopen (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
-==2691==    by 0x10910E: main (test_fread_huge_chunked.c:65)
-==2691== 
-==2691== 200,000 bytes in 1 blocks are still reachable in loss record 4 of 4
-==2691==    at 0x4C2FDFB: malloc (vg_replace_malloc.c:309)
-==2691==    by 0x109007: main (test_fread_huge_chunked.c:48)
-==2691== 
-==2691== LEAK SUMMARY:
-==2691==    definitely lost: 0 bytes in 0 blocks
-==2691==    indirectly lost: 0 bytes in 0 blocks
-==2691==      possibly lost: 0 bytes in 0 blocks
-==2691==    still reachable: 208,240 bytes in 4 blocks
-==2691==         suppressed: 0 bytes in 0 blocks
-==2691== 
-==2691== For lists of detected and suppressed errors, rerun with: -s
-==2691== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==5850== Memcheck, a memory error detector
+==5850== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==5850== Using Valgrind-3.15.0.GIT and LibVEX; rerun with -h for copyright info
+==5850== Command: _test/bin/test_popen_write ./_test/work/test_33
+==5850== Parent PID: 5845
+==5850== 
+==5850== Use of uninitialised value of size 8
+==5850==    at 0x4E3E178: so_fputc (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
+==5850==    by 0x4E3E3C4: so_fwrite (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
+==5850==    by 0x109113: main (test_popen_write.c:67)
+==5850== 
+==5850== Invalid write of size 1
+==5850==    at 0x4E3E178: so_fputc (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
+==5850==    by 0x4E3E3C4: so_fwrite (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
+==5850==    by 0x109113: main (test_popen_write.c:67)
+==5850==  Address 0x7365742f6b72e3ec is not stack'd, malloc'd or (recently) free'd
+==5850== 
+==5850== 
+==5850== Process terminating with default action of signal 11 (SIGSEGV)
+==5850==  General Protection Fault
+==5850==    at 0x4E3E178: so_fputc (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
+==5850==    by 0x4E3E3C4: so_fwrite (in /home/student/so-teme/tema2/2-stdio/checker-lin/libso_stdio.so)
+==5850==    by 0x109113: main (test_popen_write.c:67)
+==5850== 
+==5850== HEAP SUMMARY:
+==5850==     in use at exit: 0 bytes in 0 blocks
+==5850==   total heap usage: 3 allocs, 3 frees, 1,632 bytes allocated
+==5850== 
+==5850== All heap blocks were freed -- no leaks are possible
+==5850== 
+==5850== Use --track-origins=yes to see where uninitialised values come from
+==5850== For lists of detected and suppressed errors, rerun with: -s
+==5850== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)

@@ -195,12 +195,12 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
         stream->error = 1;
         return SO_EOF;
     }
-
     stream->read_pos = 0;
+    stream->buff_read_len = 0;
     strcpy(stream->buffer_read, "");
-    stream->num_of_reads = (i / B_SIZE) * B_SIZE == i ? (i / B_SIZE) : (i / B_SIZE) + 1;
+    stream->num_of_reads = i / B_SIZE;
 
-    return i;
+    return 0;
 }
 
 long so_ftell(SO_FILE *stream)
@@ -222,13 +222,12 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 
     while (total > 0)
     {
-        printf("pos: %d\n", stream->read_pos);
         if (so_fgetc(stream) == SO_EOF && stream->read_pos == stream->eof_pos)
         {
             stream->error = 1;
             return 0;
         }
-
+	
         stream->read_pos--;
         int num_elems = stream->buff_read_len - stream->read_pos < total ? stream->buff_read_len - stream->read_pos : total;
 
